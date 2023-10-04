@@ -24,6 +24,9 @@ namespace snake_dk_api
         LEFT,
         RIGHT
     };
+
+    typedef void(*snake_game_callback)(int* t_ret_map, int t_ret_map_w, int t_ret_map_h);
+    void get_game_field_callback(snake_game_callback t_callback_func);
 }
 
 namespace snake_dk_details
@@ -132,6 +135,8 @@ namespace snake_dk_details
         }
     };
     
+    snake_dk_api::snake_game_callback g_field_callback = nullptr;
+
     class GameField
     {
         int                             m_w               = 0;
@@ -208,6 +213,25 @@ namespace snake_dk_details
             t_ret_map_h = map_height;
         }
     
+        void send_game_field_to_callback()
+        {
+            if (g_field_callback == nullptr) return;
+
+            std::vector<int> matrix_in_vector_form(get_field_h() * get_field_w());
+
+            int idx = 0;
+            for (auto row = 0; row < get_field_h(); ++row)
+            {
+                for (auto col = 0; col < get_field_w(); ++col)
+                {
+                    matrix_in_vector_form[idx] = m_field_matrix[row][col];
+                    ++idx;
+                }
+            }
+
+            g_field_callback(matrix_in_vector_form.data(), get_field_h(), get_field_w());
+        }
+
         void update_game_field()
         {
             const std::lock_guard<std::mutex> lock(m_field_mutex);
@@ -228,8 +252,13 @@ namespace snake_dk_details
             }
     
             m_field_matrix[m_snake.get_snake_head().get_y()][m_snake.get_snake_head().get_x()] = SNAKE_HEAD_TOKEN;
+
+            if(g_field_callback != nullptr)
+            {
+                send_game_field_to_callback();
+            }
         }
-    
+
         void get_empty_field_position(int& t_ret_x, int& t_ret_y)
         {
             std::random_device rd;
@@ -314,6 +343,12 @@ namespace snake_dk_details
 
 namespace snake_dk_api
 {
+    void get_game_field_callback(snake_game_callback t_callback_func)
+    {
+        if (t_callback_func == nullptr) return;
+        snake_dk_details::g_field_callback = t_callback_func;
+    }
+
     void start_game(const int t_field_width, const int t_field_height, const int t_ms_refresh_rate)
     {
         if (snake_dk_details::g_game_field != nullptr) { return; }
