@@ -306,7 +306,7 @@ namespace snake_dk_details
             return true;
         }
         
-        void change_snake_direction(const snake_dk_api::eSNAKE_DIRECTION t_new_direction) { m_snake.update_snake_direction(t_new_direction); }
+        void set_snake_direction(const snake_dk_api::eSNAKE_DIRECTION t_new_direction) { m_snake.update_snake_direction(t_new_direction); }
 
         void increase_snake() { m_snake.add_token_to_snake_body(); }
     
@@ -373,31 +373,11 @@ namespace snake_dk_api
         snake_dk_details::g_field_callback = t_callback_func;
     }
     
-    // Return the (t_ret_map_w*t_ret_map_h) sized int array
-    // Array values are:
-    //      - 0 -> empty cell
-    //      - 1 -> snake head
-    //      - 2 -> snake body
-    //      - 3 -> food
-    void get_game_field_vector(std::vector<int>& t_ret_map, int& t_ret_map_w, int& t_ret_map_h)
-    {
-        if (snake_dk_details::g_game_field == nullptr) { return; }
-    
-        std::vector<int> aux_tmp;
-        int aux_w = 0;
-        int aux_h = 0;
-        snake_dk_details::g_game_field->get_game_field_as_vector(aux_tmp, aux_w, aux_h);
-    
-        t_ret_map   = aux_tmp;
-        t_ret_map_w = aux_w;
-        t_ret_map_h = aux_h;
-    }
-    
     // Change the moving snake direction to the provided one
     void change_snake_direction(const snake_dk_api::eSNAKE_DIRECTION t_new_direction)
     {
         if (snake_dk_details::g_game_field == nullptr) { return; }
-        snake_dk_details::g_game_field->change_snake_direction(t_new_direction);
+        snake_dk_details::g_game_field->set_snake_direction(t_new_direction);
     }
 }
 
