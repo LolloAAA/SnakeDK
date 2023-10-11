@@ -3,8 +3,41 @@
 
 #include "snake_dk.h"
 
-void polling_for_keyboard_input()
+void test_callback(int* t_ret_map, int t_ret_map_w, int t_ret_map_h)
 {
+    system("cls");
+
+    const int rows = t_ret_map_w;
+    const int cols = t_ret_map_h;
+    
+    const std::vector<int> map(t_ret_map, t_ret_map + (rows * cols));
+
+    int idx = 0;
+    for (auto row = 0; row < rows; ++row)
+    {
+        for (auto col = 0; col < cols; ++col)
+        {
+            std::cout << (map[idx] == 0 ? "_" : std::to_string(map[idx])) << " ";
+            ++idx;
+        }
+        std::cout << std::endl;
+    }
+}
+
+int main()
+{
+    snake_dk_api::set_game_field_callback(test_callback);
+
+    const int refresh_time_in_ms = 200;
+
+    const auto start_game_res = snake_dk_api::start_game(10, 20, refresh_time_in_ms);
+
+    if (!start_game_res)
+    {
+        std::cerr << "Failed to create a SnakeDK instance. Exit now" << std::endl;
+        return 1;
+    }
+
     while (true)
     {
         const char key = _getch();
@@ -22,36 +55,6 @@ void polling_for_keyboard_input()
 
         snake_dk_api::change_snake_direction(new_direction);
     }
-}
 
-int main()
-{
-    const int refresh_time_in_ms = 200;
-    snake_dk_api::start_game(20, 25, refresh_time_in_ms);
-
-    std::thread keyboard_thread(polling_for_keyboard_input);
-
-    while (true)
-    {
-        std::vector<int> map;
-        int rows;
-        int cols;
-        snake_dk_api::get_game_field_vector(map, cols, rows);
-
-        int idx = 0;
-        system("cls");
-        for (auto row = 0; row < rows; ++row)
-        {
-            for (auto col = 0; col < cols; ++col)
-            {
-                std::cout << (map[idx] == 0 ? "_" : std::to_string(map[idx])) << " ";
-                ++idx;
-            }
-            std::cout << std::endl;
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(refresh_time_in_ms));
-    }
-
-    if (keyboard_thread.joinable()) keyboard_thread.join();
+    return 0;
 }
