@@ -17,6 +17,7 @@
 
 namespace snake_dk_api
 {
+    // Direction to assign to the moving snake
     enum class eSNAKE_DIRECTION
     {
         TOP,
@@ -25,8 +26,14 @@ namespace snake_dk_api
         RIGHT
     };
 
+    // Tamplate of the user custom callback to get game-field data as (t_ret_map_w*t_ret_map_h) sized int array format
+    // Array values are:
+    //      - 0 -> empty cell
+    //      - 1 -> snake head
+    //      - 2 -> snake body
+    //      - 3 -> food
     typedef void(*snake_game_callback)(int* t_ret_map, int t_ret_map_w, int t_ret_map_h);
-    void get_game_field_callback(snake_game_callback t_callback_func);
+    void set_game_field_callback(snake_game_callback t_callback_func);
 }
 
 namespace snake_dk_details
@@ -343,23 +350,35 @@ namespace snake_dk_details
 
 namespace snake_dk_api
 {
-    void get_game_field_callback(snake_game_callback t_callback_func)
-    {
-        if (t_callback_func == nullptr) return;
-        snake_dk_details::g_field_callback = t_callback_func;
-    }
-
+    // Generate a (t_field_width * t_field_height) game-field that refreshes its state each t_ms_refresh_rate milliseconds
     void start_game(const int t_field_width, const int t_field_height, const int t_ms_refresh_rate)
     {
         if (snake_dk_details::g_game_field != nullptr) { return; }
         snake_dk_details::g_game_field = std::make_unique<snake_dk_details::GameField>(t_field_width, t_field_height, t_ms_refresh_rate);
     }
+
+    // Clean the entire game-field data
+    void end_game()
+    {
+        if (snake_dk_details::g_game_field == nullptr) { return; }
+        snake_dk_details::g_game_field->close_game();
+        snake_dk_details::g_game_field.reset();
+        snake_dk_details::g_game_field = nullptr;
+    }
+
+    // Set a user custom callback in order to get the game-field data
+    void set_game_field_callback(snake_game_callback t_callback_func)
+    {
+        if (t_callback_func == nullptr) return;
+        snake_dk_details::g_field_callback = t_callback_func;
+    }
     
-    // API
-    // 0 -> for empty cell
-    // 1 -> for snake head
-    // 2 -> for snake body
-    // 3 -> food
+    // Return the (t_ret_map_w*t_ret_map_h) sized int array
+    // Array values are:
+    //      - 0 -> empty cell
+    //      - 1 -> snake head
+    //      - 2 -> snake body
+    //      - 3 -> food
     void get_game_field_vector(std::vector<int>& t_ret_map, int& t_ret_map_w, int& t_ret_map_h)
     {
         if (snake_dk_details::g_game_field == nullptr) { return; }
@@ -374,18 +393,11 @@ namespace snake_dk_api
         t_ret_map_h = aux_h;
     }
     
+    // Change the moving snake direction to the provided one
     void change_snake_direction(const snake_dk_api::eSNAKE_DIRECTION t_new_direction)
     {
         if (snake_dk_details::g_game_field == nullptr) { return; }
         snake_dk_details::g_game_field->change_snake_direction(t_new_direction);
-    }
-    
-    void end_game()
-    {
-        if (snake_dk_details::g_game_field == nullptr) { return; }
-        snake_dk_details::g_game_field->close_game();
-        snake_dk_details::g_game_field.reset();
-        snake_dk_details::g_game_field = nullptr;
     }
 }
 
