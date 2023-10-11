@@ -351,10 +351,14 @@ namespace snake_dk_details
 namespace snake_dk_api
 {
     // Generate a (t_field_width * t_field_height) game-field that refreshes its state each t_ms_refresh_rate milliseconds
-    void start_game(const int t_field_width, const int t_field_height, const int t_ms_refresh_rate)
+    bool start_game(const int t_field_width, const int t_field_height, const int t_ms_refresh_rate)
     {
-        if (snake_dk_details::g_game_field != nullptr) { return; }
+        if (snake_dk_details::g_game_field != nullptr)  { return false; }
+        if (t_field_width < 2 && t_field_height < 2)    { return false; }
+
         snake_dk_details::g_game_field = std::make_unique<snake_dk_details::GameField>(t_field_width, t_field_height, t_ms_refresh_rate);
+
+        return true;
     }
 
     // Clean the entire game-field data

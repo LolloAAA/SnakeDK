@@ -29,7 +29,14 @@ int main()
     snake_dk_api::set_game_field_callback(test_callback);
 
     const int refresh_time_in_ms = 200;
-    snake_dk_api::start_game(5, 2, refresh_time_in_ms);
+
+    const auto start_game_res = snake_dk_api::start_game(10, 20, refresh_time_in_ms);
+
+    if (!start_game_res)
+    {
+        std::cerr << "Failed to create a SnakeDK instance. Exit now" << std::endl;
+        return 1;
+    }
 
     while (true)
     {
@@ -48,4 +55,6 @@ int main()
 
         snake_dk_api::change_snake_direction(new_direction);
     }
+
+    return 0;
 }
